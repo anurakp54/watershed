@@ -2,12 +2,38 @@ import streamlit as st
 from streamlit_folium import folium_static
 import folium
 import rasterio
-import numpy as np
 from pysheds.grid import Grid
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import colors
-import seaborn as sns
+import math
+
+
+
+def haversine_distance(coord1, coord2):
+    R = 6371.0  # Earth radius in kilometers
+
+    lat1, lon1 = coord1
+    lat2, lon2 = coord2
+
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+
+    a = math.sin(dlat / 2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+    distance = R * c
+    return distance
+
+
+def calculate_area(coordinates):
+    total_area = 0
+    num_points = len(coordinates)
+
+    for i in range(num_points - 1):
+        total_area += haversine_distance(coordinates[i], coordinates[i + 1])
+        # Area in square kilometers
+    return total_area
+
 st.set_page_config(
     page_title="Hydrology App",
     page_icon="🧊",
@@ -149,16 +175,30 @@ if catchment_button:
     # Specify pour point
     print(f'lat, long :{long},{lat}')
     # Snap pour point to high accumulation cell
-    x_snap, y_snap = grid.snap_to_mask(acc > 500, (long, lat))
+    x_snap, y_snap = grid.snap_to_mask(acc > 5000, (long, lat))
 
     # Delineate the catchment
     catch = grid.catchment(x=x_snap, y=y_snap, fdir=fdir, dirmap=dirmap,
                            xytype='coordinate')
+
     # Crop and plot the catchment
     # ---------------------------
     # Clip the bounding box to the catchment
     grid.clip_to(catch)
     clipped_catch = grid.view(catch)
+    lat1,lat2, long1, long2 = clipped_catch.extent
+    coor = [
+        (lat1,long1),
+        (lat1,long2),
+        (lat2,long2),
+        (lat2,long1),
+        (lat1,long1)
+    ]
+    area = calculate_area(coor)
+    total_cells = clipped_catch.shape[0] * clipped_catch.shape[1]
+    catchment_percent = clipped_catch.sum()/total_cells
+    st.write("Optimum Pour Point:", x_snap, y_snap)
+    st.write("Catchment Area = ", area * catchment_percent, "Square Kilometers")
 
     # Calculate distance to outlet from each cell
     # -------------------------------------------
@@ -174,5 +214,42 @@ if catchment_button:
     plt.ylabel('Latitude')
     plt.title('Flow Distance', size=14)
     st.pyplot(fig)
+
+    # Catchment imposed on Terrain
+    catchment_on_terrain = np.where(np.invert(catch), digital_terrain_array,0)
+
+    # center on the map
+    n = folium.Map(location=[lat, long], zoom_start=10)
+
+    tooltip = f"Pour Point: {lat},{long}"
+    folium.Marker(
+        [lat, long], popup="Double Track Project", tooltip=tooltip
+    ).add_to(n)
+
+    terrain_img = folium.raster_layers.ImageOverlay(
+        name="DEM",
+        image=np.moveaxis(catchment_on_terrain, 0, -1),
+        bounds=bbox,
+        opacity=0.7,
+        interactive=True,
+        cross_origin=False,
+        zindex=1,
+    )
+    # folium.Popup("Message").add_to(img)
+    # Imposed Stream on the Terrain
+
+    img = folium.raster_layers.ImageOverlay(
+        name="Stream",
+        image=np.moveaxis(array, 0, -1),
+        bounds=bbox,
+        opacity=0.3,
+        interactive=True,
+        cross_origin=False,
+        zindex=1,
+    )
+    img.add_to(n)
+    terrain_img.add_to(n)
+    folium.LayerControl().add_to(n)
+    folium_static(n)
 else: pass
 
