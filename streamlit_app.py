@@ -83,6 +83,8 @@ st.write('The current number is ', lat)
 long = st.number_input('Insert Longtitude', min_value=bounds.left, max_value=bounds.right, value= 99.878)
 st.write('The current number is ', long)
 
+accum = st.number_input("Accumulate Size of catchment", 500, 5000, 2000)
+
 # center on the map
 n = folium.Map(location=[lat,long], zoom_start=14)
 
@@ -175,7 +177,8 @@ if catchment_button:
     # Specify pour point
     print(f'lat, long :{long},{lat}')
     # Snap pour point to high accumulation cell
-    x_snap, y_snap = grid.snap_to_mask(acc > 5000, (long, lat))
+
+    x_snap, y_snap = grid.snap_to_mask(acc > accum, (long, lat))
 
     # Delineate the catchment
     catch = grid.catchment(x=x_snap, y=y_snap, fdir=fdir, dirmap=dirmap,
@@ -194,11 +197,14 @@ if catchment_button:
         (lat2,long1),
         (lat1,long1)
     ]
+    st.write("Latidude  : distance :  ", f'{haversine_distance((lat1,long1),(lat2,long1)):.2f}',"  km", "Cell :", clipped_catch.shape[0])
+    st.write("Longitude : distance :  ", f'{haversine_distance((lat1,long1),(lat1,long2)):.2f}',"  km", "Cell :", clipped_catch.shape[1])
+
     area = calculate_area(coor)
     total_cells = clipped_catch.shape[0] * clipped_catch.shape[1]
     catchment_percent = clipped_catch.sum()/total_cells
-    st.write("Optimum Pour Point:", x_snap, y_snap)
-    st.write("Catchment Area = ", area * catchment_percent, "Square Kilometers")
+    st.write("Optimum Pour Point:", f'{x_snap:.3f}', f'{y_snap}:.3f')
+    st.write("Catchment Area = ", f'{area * catchment_percent}:.2f', "Square Kilometers")
 
     # Calculate distance to outlet from each cell
     # -------------------------------------------
