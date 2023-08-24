@@ -197,11 +197,14 @@ if catchment_button:
         (lat1,long1)
     ]
     area = calculate_area(coor)
-
     total_cells = clipped_catch.shape[0] * clipped_catch.shape[1]
     catchment_percent = clipped_catch.sum()/total_cells
     st.write("Optimum Pour Point:", f'{x_snap:.3f}', f'{y_snap:.3f}')
     st.write("Catchment Area = ", f'{(area * catchment_percent):.2f}', "Square Kilometers")
+    st.write("Latidude  : distance :  ", f'{haversine_distance((lat1, long1), (lat2, long1)):.2f}', "  km",
+             "Cell :", clipped_catch.shape[0])
+    st.write("Longitude : distance :  ", f'{haversine_distance((lat1, long1), (lat1, long2)):.2f}', "  km",
+             "Cell :", clipped_catch.shape[1])
 
     # Calculate distance to outlet from each cell
     # -------------------------------------------
