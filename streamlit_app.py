@@ -203,8 +203,8 @@ if catchment_button:
     area = calculate_area(coor)
     total_cells = clipped_catch.shape[0] * clipped_catch.shape[1]
     catchment_percent = clipped_catch.sum()/total_cells
-    st.write("Optimum Pour Point:", f'{x_snap:.3f}', f'{y_snap}:.3f')
-    st.write("Catchment Area = ", f'{area * catchment_percent}:.2f', "Square Kilometers")
+    st.write("Optimum Pour Point:", f'{x_snap:.3f}', f'{y_snap:.3f}')
+    st.write("Catchment Area = ", f'{(area * catchment_percent):.2f}', "Square Kilometers")
 
     # Calculate distance to outlet from each cell
     # -------------------------------------------
