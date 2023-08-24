@@ -1,2 +1,3 @@
 # Watershed
-Project Area limited Northern Part of Thailand
+Project Area is limited to Northern Part of Thailand
+Source of DEM data is downloaded from USGS Earth Explorer.
