@@ -6,8 +6,15 @@ from pysheds.grid import Grid
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+@st.cache_data()
+def grid_from_raster(file):
+    grid = Grid.from_raster(file)
+    return grid
 
-
+@st.cache_resource()
+def open_rasterio(file):
+    dem = rasterio.open(file)
+    return dem
 
 def haversine_distance(coord1, coord2):
     R = 6371.0  # Earth radius in kilometers
@@ -46,15 +53,6 @@ st.set_page_config(
 
 digital_terrain = "data/mergeDEM.tif"
 streams = 'data/export.tif'
-@st.cache_data()
-def grid_from_raster(file):
-    grid = Grid.from_raster(file)
-    return grid
-
-@st.cache_resource()
-def open_rasterio(file):
-    dem = rasterio.open(file)
-    return dem
 
 grid = grid_from_raster(digital_terrain)
 grid_array = grid.read_raster(digital_terrain)
@@ -91,40 +89,15 @@ folium.Marker(
     [lat, long], popup="Double Track Project", tooltip=tooltip
 ).add_to(n)
 folium.LayerControl().add_to(n)
-folium_static(n)
+folium_static(n, width=1200, height=800)
 
-terrain_button = st.button("Digital Terrain MAP")
 stream_button = st.button("Streams Line")
 catchment_button = st.button("Catchment")
-if terrain_button:
-    st.header('Digital Terrain Map')
-    # center on the map
-    n = folium.Map(location=[lat,long], zoom_start=10)
-
-    tooltip = f"Pour Point: {lat},{long}"
-    folium.Marker(
-        [lat, long], popup="Double Track Project", tooltip=tooltip
-    ).add_to(n)
-
-    terrain_img = folium.raster_layers.ImageOverlay(
-        name="DEM",
-        image=np.moveaxis(digital_terrain_array, 0, -1),
-        bounds=bbox,
-        opacity=0.7,
-        interactive=True,
-        cross_origin=False,
-        zindex=1,
-    )
-    # folium.Popup("Message").add_to(img)
-    terrain_img.add_to(n)
-    folium.LayerControl().add_to(n)
-    folium_static(n)
-else: pass
 
 if stream_button:
     st.header('Stream Lines Map')
     # center on the map
-    m = folium.Map(location=[lat,long], zoom_start=10)
+    m = folium.Map(location=[lat,long], width=1500, height=800, zoom_start=10)
 
     # add marker for Liberty Bell
     tooltip = f"lat:long = [{lat}:{long}]"
@@ -136,6 +109,15 @@ if stream_button:
         name="Stream",
         image=np.moveaxis(array, 0, -1),
         bounds=bbox,
+        opacity=0.6,
+        interactive=True,
+        cross_origin=False,
+        zindex=1,
+    )
+    terrain_img = folium.raster_layers.ImageOverlay(
+        name="DEM",
+        image=np.moveaxis(digital_terrain_array, 0, -1),
+        bounds=bbox,
         opacity=0.5,
         interactive=True,
         cross_origin=False,
@@ -144,8 +126,9 @@ if stream_button:
 
     # folium.Popup("Message").add_to(img)
     img.add_to(m)
+    terrain_img.add_to(m)
     folium.LayerControl().add_to(m)
-    folium_static(m)
+    folium_static(m,width=1200, height=800)
 else: pass
 
 if catchment_button:
@@ -256,6 +239,6 @@ if catchment_button:
     img.add_to(n)
     terrain_img.add_to(n)
     folium.LayerControl().add_to(n)
-    folium_static(n)
+    folium_static(n,width=1200, height=800)
 else: pass
 
