@@ -6,6 +6,7 @@ from pysheds.grid import Grid
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+import pandas as pd
 @st.cache_data()
 def grid_from_raster(file):
     grid = Grid.from_raster(file)
@@ -51,6 +52,9 @@ st.set_page_config(
     }
 )
 
+file_path = 'Description.xlsx'
+marker_df = pd.read_excel(file_path, sheet_name='Description')
+
 digital_terrain = "data/mergeDEM.tif"
 streams = 'data/export.tif'
 
@@ -88,6 +92,14 @@ tooltip = f"Pour Point: {lat},{long}"
 folium.Marker(
     [lat, long], popup="Double Track Project", tooltip=tooltip
 ).add_to(n)
+
+for i in range(0,marker_df.shape[0]):
+    tooltip1 = f'{marker_df.loc[i,"Latitude"]},{marker_df.loc[i,"Longitude"]}, {marker_df.loc[i,"Description"]}'
+    folium.Marker(
+        [marker_df.loc[i,'Latitude'], marker_df.loc[i,'Longitude']], popup=f'{marker_df.loc[i,"Description"]}',
+        tooltip=tooltip1
+    ).add_to(n)
+
 folium.LayerControl().add_to(n)
 folium_static(n, width=1200, height=800)
 
@@ -104,6 +116,13 @@ if stream_button:
     folium.Marker(
         [lat, long], popup=f"[{lat}:{long}]", tooltip=tooltip
     ).add_to(m)
+
+    for i in range(0, marker_df.shape[0]):
+        tooltip1 = f'{marker_df.loc[i, "Latitude"]},{marker_df.loc[i, "Longitude"]}, {marker_df.loc[i, "Description"]}'
+        folium.Marker(
+            [marker_df.loc[i, 'Latitude'], marker_df.loc[i, 'Longitude']], popup=f'{marker_df.loc[i, "Description"]}',
+            tooltip=tooltip1
+        ).add_to(m)
 
     img = folium.raster_layers.ImageOverlay(
         name="Stream",
@@ -215,6 +234,13 @@ if catchment_button:
         [lat, long], popup="Double Track Project", tooltip=tooltip
     ).add_to(n)
 
+    for i in range(0, marker_df.shape[0]):
+        tooltip1 = f'{marker_df.loc[i, "Latitude"]},{marker_df.loc[i, "Longitude"]}, {marker_df.loc[i, "Description"]}'
+        folium.Marker(
+            [marker_df.loc[i, 'Latitude'], marker_df.loc[i, 'Longitude']], popup=f'{marker_df.loc[i, "Description"]}',
+            tooltip=tooltip1
+        ).add_to(n)
+
     terrain_img = folium.raster_layers.ImageOverlay(
         name="DEM",
         image=np.moveaxis(catchment_on_terrain, 0, -1),
@@ -236,6 +262,7 @@ if catchment_button:
         cross_origin=False,
         zindex=1,
     )
+
     img.add_to(n)
     terrain_img.add_to(n)
     folium.LayerControl().add_to(n)
