@@ -226,46 +226,5 @@ if catchment_button:
     # Catchment imposed on Terrain
     catchment_on_terrain = np.where(np.invert(catch), digital_terrain_array,0)
 
-    # center on the map
-    n = folium.Map(location=[lat, long], zoom_start=10)
-
-    tooltip = f"Pour Point: {lat},{long}"
-    folium.Marker(
-        [lat, long], popup="Double Track Project", tooltip=tooltip
-    ).add_to(n)
-
-    for i in range(0, marker_df.shape[0]):
-        tooltip1 = f'{marker_df.loc[i, "Latitude"]},{marker_df.loc[i, "Longitude"]}, {marker_df.loc[i, "Description"]}'
-        folium.Marker(
-            [marker_df.loc[i, 'Latitude'], marker_df.loc[i, 'Longitude']], popup=f'{marker_df.loc[i, "Description"]}',
-            tooltip=tooltip1
-        ).add_to(n)
-
-    terrain_img = folium.raster_layers.ImageOverlay(
-        name="DEM",
-        image=np.moveaxis(catchment_on_terrain, 0, -1),
-        bounds=bbox,
-        opacity=0.7,
-        interactive=True,
-        cross_origin=False,
-        zindex=1,
-    )
-    # folium.Popup("Message").add_to(img)
-    # Imposed Stream on the Terrain
-
-    img = folium.raster_layers.ImageOverlay(
-        name="Stream",
-        image=np.moveaxis(array, 0, -1),
-        bounds=bbox,
-        opacity=0.3,
-        interactive=True,
-        cross_origin=False,
-        zindex=1,
-    )
-
-    img.add_to(n)
-    terrain_img.add_to(n)
-    folium.LayerControl().add_to(n)
-    folium_static(n,width=1200, height=800)
 else: pass
 
