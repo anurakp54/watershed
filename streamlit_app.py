@@ -192,11 +192,11 @@ if catchment_button:
     clipped_catch = grid.view(catch)
     lat1,lat2, long1, long2 = clipped_catch.extent
     coor = [
-        (lat1,long1),
-        (lat1,long2),
-        (lat2,long2),
-        (lat2,long1),
-        (lat1,long1)
+        (long1, lat1),
+        (long2, lat1),
+        (long2, lat2),
+        (long1, lat2),
+        (long1, lat1)
     ]
     area = calculate_area(coor)
     total_cells = clipped_catch.shape[0] * clipped_catch.shape[1]
@@ -225,6 +225,11 @@ if catchment_button:
 
     # Catchment imposed on Terrain
     catchment_on_terrain = np.where(np.invert(catch), digital_terrain_array,0)
+    terrain_in_catchment = np.where(np.array(catch), digital_terrain_array,0)
 
+    elev = np.unique(terrain_in_catchment)
+    print(elev[1::])
+    max_height = elev[-1]-elev[1]
+    st.write(f'Maximum elevation diff height in (m): {max_height}')
 else: pass
 
