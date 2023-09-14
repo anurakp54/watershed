@@ -190,13 +190,13 @@ if catchment_button:
     # Clip the bounding box to the catchment
     grid.clip_to(catch)
     clipped_catch = grid.view(catch)
-    lat1,lat2, long1, long2 = clipped_catch.extent
+    long1, long2, lat1, lat2 = clipped_catch.extent
     coor = [
-        (long1, lat1),
-        (long2, lat1),
-        (long2, lat2),
-        (long1, lat2),
-        (long1, lat1)
+        (lat1, long1),
+        (lat1, long2),
+        (lat2, long2),
+        (lat2, long1),
+        (lat1, long1)
     ]
     area = calculate_area(coor)
     total_cells = clipped_catch.shape[0] * clipped_catch.shape[1]
